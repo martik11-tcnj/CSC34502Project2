@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 199309L
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -91,10 +90,10 @@ int main(int argc, char *argv[]) {
     ThreadData data[MAX_THREADS];
     int thread_count = 0;
     const int mode = argv[1][0] - '0';
-    struct timespec start, end;
+    clock_t start, end;
     for (int i = 0; i < MAX_THREADS; ++i) results[i] = 0;
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    start = clock();
     /* Both modes use 9 row checks and 9 subgrid checks. */
     for (int i = 0; i < SIZE; ++i) {
         data[thread_count] = (ThreadData){CHECK_ROW, i, i};
@@ -121,12 +120,12 @@ int main(int argc, char *argv[]) {
         ++thread_count;
     }
     for (int i = 0; i < thread_count; ++i) pthread_join(threads[i], NULL);
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    end = clock();
 
-    double elapsed = (double)(end.tv_sec - start.tv_sec) +
-                     (double)(end.tv_nsec - start.tv_nsec) / 1000000000.0;
+    double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
     int solution = 1;
     for (int i = 0; i < thread_count; ++i) if (!results[i]) { solution = 0; break; }
     printf("SOLUTION: %s (%.4f seconds)\n", solution ? "YES" : "NO", elapsed);
     return 0;
 }
+
